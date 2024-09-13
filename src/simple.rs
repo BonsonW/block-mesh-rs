@@ -75,7 +75,7 @@ pub fn visible_block_faces_with_voxel_view<'a, T, V, S>(
             // IsOpaque trait with different levels of transparency to support this.
             let face_needs_mesh = match neighbor_voxel.get_visibility() {
                 VoxelVisibility::Empty => true,
-                VoxelVisibility::Translucent => p_voxel.get_visibility() == VoxelVisibility::Opaque,
+                VoxelVisibility::Translucent => p_voxel.get_visibility() == VoxelVisibility::Opaque || p_voxel.get_visibility() == VoxelVisibility::Translucent, // nah do it anyways
                 VoxelVisibility::Opaque => false,
             };
 
