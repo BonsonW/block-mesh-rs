@@ -91,9 +91,8 @@ pub fn visible_block_faces_with_voxel_view<'a, T, V, S>(
         let p_array = p.to_array();
         let p_index = voxels_shape.linearize(p_array);
         let p_voxel = V::from(unsafe { voxels.get_unchecked(p_index as usize) });
-        let visibility = p_voxel.get_visibility();
         
-        if visibility == VoxelVisibility::Empty {
+        if p_voxel.get_visibility() == VoxelVisibility::Empty {
             continue;
         }
 
