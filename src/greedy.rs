@@ -305,6 +305,10 @@ mod tests {
                 VoxelVisibility::Opaque
             }
         }
+        
+        fn get_face_visibility(&self, _face_index: usize) -> VoxelVisibility {
+            return self.get_visibility();
+        }
     }
 
     impl MergeVoxel for BoolVoxel {

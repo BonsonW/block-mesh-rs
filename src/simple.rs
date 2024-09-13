@@ -71,12 +71,13 @@ pub fn visible_block_faces_with_voxel_view<'a, T, V, S>(
         for (face_index, face_stride) in kernel_strides.into_iter().enumerate() {
             let neighbor_index = p_index.wrapping_add(face_stride);
             let neighbor_voxel = V::from(unsafe { voxels.get_unchecked(neighbor_index as usize) });
+            let visibility = p_voxel.get_face_visibility(face_index);
 
             // TODO: If the face lies between two transparent voxels, we choose not to mesh it. We might need to extend the
             // IsOpaque trait with different levels of transparency to support this.
             let face_needs_mesh = (visibility == VoxelVisibility::Forced) || match neighbor_voxel.get_visibility() {
                 VoxelVisibility::Empty => true,
-                VoxelVisibility::Translucent => p_voxel.get_visibility() == VoxelVisibility::Opaque || p_voxel.get_visibility() == VoxelVisibility::Translucent, // nah do it anyways
+                VoxelVisibility::Translucent => p_voxel.get_visibility() == VoxelVisibility::Opaque, // nah do it anyways
                 VoxelVisibility::Opaque => false,
                 VoxelVisibility::Forced => true,
             };
@@ -139,6 +140,10 @@ mod tests {
             } else {
                 VoxelVisibility::Opaque
             }
+        }
+        
+        fn get_face_visibility(&self, _face_index: usize) -> VoxelVisibility {
+            return self.get_visibility();
         }
     }
 
