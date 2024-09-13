@@ -245,10 +245,11 @@ where
 
     // TODO: If the face lies between two transparent voxels, we choose not to mesh it. We might need to extend the IsOpaque
     // trait with different levels of transparency to support this.
-    match adjacent_voxel.get_visibility() {
+    (voxel.get_visibility() == VoxelVisibility::Forced) || match adjacent_voxel.get_visibility() {
         VoxelVisibility::Empty => true,
         VoxelVisibility::Translucent => voxel.get_visibility() == VoxelVisibility::Opaque,
         VoxelVisibility::Opaque => false,
+        VoxelVisibility::Forced => true
     }
 }
 
