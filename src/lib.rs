@@ -123,8 +123,8 @@ impl<'a, T: Voxel> Voxel for IdentityVoxel<'a, T> {
     }
     
     #[inline]
-    fn get_face_visibility(&self, _face: SignedAxis) -> VoxelVisibility {
-        self.0.get_visibility()
+    fn get_face_visibility(&self, face: SignedAxis) -> VoxelVisibility {
+        self.0.get_face_visibility(face)
     }
 }
 
