@@ -32,16 +32,21 @@ pub fn visible_block_faces<T, S>(
     )
 }
 
-fn stride_to_face(face_stride: u32) -> SignedAxis {
-    match face_stride {
-        0 => SignedAxis::NegX,
-        1 => SignedAxis::PosX,
-        2 => SignedAxis::NegY,
-        3 => SignedAxis::PosY,
-        4 => SignedAxis::NegZ,
-        5 => SignedAxis::PosZ,
-        _ => panic!("unknown stride"),
+static FACE_LOOKUP: &'static [SignedAxis] = &[
+    SignedAxis::NegX,
+    SignedAxis::PosX,
+    SignedAxis::NegY,
+    SignedAxis::PosY,
+    SignedAxis::NegZ,
+    SignedAxis::PosZ,
+];
+
+#[inline]
+fn stride_to_face(face_stride: usize) -> SignedAxis {
+    if face_stride > 5 {
+        panic!("unknown stride");
     }
+    FACE_LOOKUP[face_stride]
 }
 
 fn opp_face(face: SignedAxis) -> SignedAxis {
@@ -95,7 +100,7 @@ pub fn visible_block_faces_with_voxel_view<'a, T, V, S>(
         for (face_index, face_stride) in kernel_strides.into_iter().enumerate() {
             let neighbor_index = p_index.wrapping_add(face_stride);
             let neighbor_voxel = V::from(unsafe { voxels.get_unchecked(neighbor_index as usize) });
-            let face = stride_to_face(face_stride);
+            let face = stride_to_face(face_stride as usize);
             let visibility = p_voxel.get_face_visibility(face);
             let neighbor_face = opp_face(face);
 
