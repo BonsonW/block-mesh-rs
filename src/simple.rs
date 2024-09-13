@@ -34,10 +34,10 @@ pub fn visible_block_faces<T, S>(
 
 static FACE_LOOKUP: &'static [SignedAxis] = &[
     SignedAxis::NegX,
-    SignedAxis::PosX,
     SignedAxis::NegY,
-    SignedAxis::PosY,
     SignedAxis::NegZ,
+    SignedAxis::PosX,
+    SignedAxis::PosY,
     SignedAxis::PosZ,
 ];
 
