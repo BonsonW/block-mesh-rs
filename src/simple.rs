@@ -100,7 +100,7 @@ pub fn visible_block_faces_with_voxel_view<'a, T, V, S>(
         for (face_index, face_stride) in kernel_strides.into_iter().enumerate() {
             let neighbor_index = p_index.wrapping_add(face_stride);
             let neighbor_voxel = V::from(unsafe { voxels.get_unchecked(neighbor_index as usize) });
-            let face = stride_to_face(face_stride as usize);
+            let face = stride_to_face(face_index);
             let visibility = p_voxel.get_face_visibility(face);
             let neighbor_face = opp_face(face);
 
