@@ -1,3 +1,4 @@
+use crate::SignedAxis;
 use crate::{
     bounds::assert_in_bounds, IdentityVoxel, OrientedBlockFace, UnitQuadBuffer, UnorientedUnitQuad, Voxel, VoxelVisibility,
 };
@@ -29,6 +30,29 @@ pub fn visible_block_faces<T, S>(
         faces,
         output,
     )
+}
+
+fn stride_to_face(face_stride: u32) -> SignedAxis {
+    match face_stride {
+        0 => SignedAxis::NegX,
+        1 => SignedAxis::PosX,
+        2 => SignedAxis::NegY,
+        3 => SignedAxis::PosY,
+        4 => SignedAxis::NegZ,
+        5 => SignedAxis::PosZ,
+        _ => panic!("unknown stride"),
+    }
+}
+
+fn opp_face(face: SignedAxis) -> SignedAxis {
+    match face {
+        SignedAxis::NegX => SignedAxis::PosX,
+        SignedAxis::PosX => SignedAxis::NegX,
+        SignedAxis::NegY => SignedAxis::PosY,
+        SignedAxis::PosY => SignedAxis::NegY,
+        SignedAxis::NegZ => SignedAxis::PosZ,
+        SignedAxis::PosZ => SignedAxis::NegZ,
+    }
 }
 
 /// Same as [`visible_block_faces`](visible_block_faces),
@@ -71,11 +95,13 @@ pub fn visible_block_faces_with_voxel_view<'a, T, V, S>(
         for (face_index, face_stride) in kernel_strides.into_iter().enumerate() {
             let neighbor_index = p_index.wrapping_add(face_stride);
             let neighbor_voxel = V::from(unsafe { voxels.get_unchecked(neighbor_index as usize) });
-            let visibility = p_voxel.get_face_visibility(face_index);
+            let face = stride_to_face(face_stride);
+            let visibility = p_voxel.get_face_visibility(face);
+            let neighbor_face = opp_face(face);
 
             // TODO: If the face lies between two transparent voxels, we choose not to mesh it. We might need to extend the
             // IsOpaque trait with different levels of transparency to support this.
-            let face_needs_mesh = (visibility == VoxelVisibility::Forced) || match neighbor_voxel.get_face_visibility(neighbor_index as usize) {
+            let face_needs_mesh = (visibility == VoxelVisibility::Forced) || match neighbor_voxel.get_face_visibility(neighbor_face) {
                 VoxelVisibility::Empty => true,
                 VoxelVisibility::Translucent => p_voxel.get_visibility() == VoxelVisibility::Opaque, // nah do it anyways
                 VoxelVisibility::Opaque => false,
@@ -92,7 +118,7 @@ pub fn visible_block_faces_with_voxel_view<'a, T, V, S>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::RIGHT_HANDED_Y_UP_CONFIG;
+    use crate::{SignedAxis, RIGHT_HANDED_Y_UP_CONFIG};
     use ndshape::{ConstShape, ConstShape3u32};
 
     #[test]
@@ -142,7 +168,7 @@ mod tests {
             }
         }
         
-        fn get_face_visibility(&self, _face_index: usize) -> VoxelVisibility {
+        fn get_face_visibility(&self, _face: SignedAxis) -> VoxelVisibility {
             return self.get_visibility();
         }
     }

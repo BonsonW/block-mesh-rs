@@ -256,7 +256,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::RIGHT_HANDED_Y_UP_CONFIG;
+    use crate::{SignedAxis, RIGHT_HANDED_Y_UP_CONFIG};
     use ndshape::{ConstShape, ConstShape3u32};
 
     #[test]
@@ -306,7 +306,7 @@ mod tests {
             }
         }
         
-        fn get_face_visibility(&self, _face_index: usize) -> VoxelVisibility {
+        fn get_face_visibility(&self, _face: SignedAxis) -> VoxelVisibility {
             return self.get_visibility();
         }
     }
