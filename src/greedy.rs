@@ -306,7 +306,7 @@ mod tests {
             }
         }
         
-        fn get_face_visibility(&self, _face: SignedAxis) -> VoxelVisibility {
+        fn get_face_visibility(&self, _face: usize) -> VoxelVisibility {
             return self.get_visibility();
         }
     }

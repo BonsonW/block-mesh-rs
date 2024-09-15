@@ -1,4 +1,3 @@
-use crate::SignedAxis;
 use crate::{
     bounds::assert_in_bounds, IdentityVoxel, OrientedBlockFace, UnitQuadBuffer, UnorientedUnitQuad, Voxel, VoxelVisibility,
 };
@@ -32,31 +31,32 @@ pub fn visible_block_faces<T, S>(
     )
 }
 
-static FACE_LOOKUP: &'static [SignedAxis] = &[
-    SignedAxis::NegX,
-    SignedAxis::NegY,
-    SignedAxis::NegZ,
-    SignedAxis::PosX,
-    SignedAxis::PosY,
-    SignedAxis::PosZ,
-];
+// static FACE_LOOKUP: &'static [SignedAxis] = &[
+//     SignedAxis::NegX,
+//     SignedAxis::NegY,
+//     SignedAxis::NegZ,
+//     SignedAxis::PosX,
+//     SignedAxis::PosY,
+//     SignedAxis::PosZ,
+// ];
 
-#[inline]
-fn stride_to_face(face_stride: usize) -> SignedAxis {
-    if face_stride > 5 {
-        panic!("unknown stride");
-    }
-    FACE_LOOKUP[face_stride]
-}
+// #[inline]
+// fn stride_to_face(face_stride: usize) -> SignedAxis {
+//     if face_stride > 5 {
+//         panic!("unknown stride");
+//     }
+//     FACE_LOOKUP[face_stride]
+// }
 
-fn opp_face(face: SignedAxis) -> SignedAxis {
+fn opp_face(face: usize) -> usize {
     match face {
-        SignedAxis::NegX => SignedAxis::PosX,
-        SignedAxis::PosX => SignedAxis::NegX,
-        SignedAxis::NegY => SignedAxis::PosY,
-        SignedAxis::PosY => SignedAxis::NegY,
-        SignedAxis::NegZ => SignedAxis::PosZ,
-        SignedAxis::PosZ => SignedAxis::NegZ,
+        0 => 3,
+        1 => 4,
+        2 => 5,
+        3 => 0,
+        4 => 1,
+        5 => 2,
+        _ => panic!("out of bounds face index")
     }
 }
 
@@ -99,9 +99,8 @@ pub fn visible_block_faces_with_voxel_view<'a, T, V, S>(
         for (face_index, face_stride) in kernel_strides.into_iter().enumerate() {
             let neighbor_index = p_index.wrapping_add(face_stride);
             let neighbor_voxel = V::from(unsafe { voxels.get_unchecked(neighbor_index as usize) });
-            let face = stride_to_face(face_index);
-            let visibility = p_voxel.get_face_visibility(face);
-            let neighbor_face = opp_face(face);
+            let visibility = p_voxel.get_face_visibility(face_index);
+            let neighbor_face = opp_face(face_index);
 
             // TODO: If the face lies between two transparent voxels, we choose not to mesh it. We might need to extend the
             // IsOpaque trait with different levels of transparency to support this.
@@ -172,7 +171,7 @@ mod tests {
             }
         }
         
-        fn get_face_visibility(&self, _face: SignedAxis) -> VoxelVisibility {
+        fn get_face_visibility(&self, _face: usize) -> VoxelVisibility {
             return self.get_visibility();
         }
     }

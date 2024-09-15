@@ -109,7 +109,7 @@ pub enum VoxelVisibility {
 /// how to generate geometry for this voxel.
 pub trait Voxel {
     fn get_visibility(&self) -> VoxelVisibility;
-    fn get_face_visibility(&self, face: SignedAxis) -> VoxelVisibility;
+    fn get_face_visibility(&self, face: usize) -> VoxelVisibility;
 }
 
 /// Used as a dummy for functions that must wrap a voxel
@@ -123,7 +123,7 @@ impl<'a, T: Voxel> Voxel for IdentityVoxel<'a, T> {
     }
     
     #[inline]
-    fn get_face_visibility(&self, face: SignedAxis) -> VoxelVisibility {
+    fn get_face_visibility(&self, face: usize) -> VoxelVisibility {
         self.0.get_face_visibility(face)
     }
 }
