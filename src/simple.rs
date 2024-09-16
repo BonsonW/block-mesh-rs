@@ -107,8 +107,9 @@ pub fn visible_block_faces_with_voxel_view<'a, T, V, S>(
             let face_needs_mesh = (visibility == VoxelVisibility::Forced) || match neighbor_voxel.get_face_visibility(neighbor_face) {
                 VoxelVisibility::Empty => true,
                 VoxelVisibility::Translucent => visibility == VoxelVisibility::Opaque,
-                VoxelVisibility::Opaque => false,
+                VoxelVisibility::Opaque => visibility != VoxelVisibility::HideIfOppOpaque,
                 VoxelVisibility::Forced => true,
+                VoxelVisibility::HideIfOppOpaque => true,
             };
 
             if face_needs_mesh {
@@ -121,7 +122,7 @@ pub fn visible_block_faces_with_voxel_view<'a, T, V, S>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{SignedAxis, RIGHT_HANDED_Y_UP_CONFIG};
+    use crate::RIGHT_HANDED_Y_UP_CONFIG;
     use ndshape::{ConstShape, ConstShape3u32};
 
     #[test]

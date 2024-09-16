@@ -248,15 +248,16 @@ where
     (voxel.get_visibility() == VoxelVisibility::Forced) || match adjacent_voxel.get_visibility() {
         VoxelVisibility::Empty => true,
         VoxelVisibility::Translucent => voxel.get_visibility() == VoxelVisibility::Opaque,
-        VoxelVisibility::Opaque => false,
-        VoxelVisibility::Forced => true
+        VoxelVisibility::Opaque => voxel.get_visibility() != VoxelVisibility::HideIfOppOpaque,
+        VoxelVisibility::Forced => true,
+        VoxelVisibility::HideIfOppOpaque => true,
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{SignedAxis, RIGHT_HANDED_Y_UP_CONFIG};
+    use crate::RIGHT_HANDED_Y_UP_CONFIG;
     use ndshape::{ConstShape, ConstShape3u32};
 
     #[test]

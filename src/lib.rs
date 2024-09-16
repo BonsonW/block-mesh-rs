@@ -102,7 +102,9 @@ pub enum VoxelVisibility {
     /// Light cannot pass through this voxel.
     Opaque,
     /// Force geometry
-    Forced
+    Forced,
+    /// Hide geometry only if other is opaque
+    HideIfOppOpaque
 }
 
 /// Implement on your voxel types to inform the library
