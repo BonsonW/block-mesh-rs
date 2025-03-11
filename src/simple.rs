@@ -17,7 +17,7 @@ pub fn visible_block_faces<T, S>(
     max: [u32; 3],
     faces: &[OrientedBlockFace; 6],
     output: &mut UnitQuadBuffer,
-    visibility: fn(&T) -> VoxelVisibility
+    mask: fn(&T) -> VoxelVisibility
 ) where
     T: Voxel,
     S: Shape<3, Coord = u32>,
@@ -29,7 +29,7 @@ pub fn visible_block_faces<T, S>(
         max,
         faces,
         output,
-        visibility
+        mask
     )
 }
 
@@ -73,7 +73,7 @@ pub fn visible_block_faces_with_voxel_view<'a, T, V, S>(
     max: [u32; 3],
     faces: &[OrientedBlockFace; 6],
     output: &mut UnitQuadBuffer,
-    visibility: fn(&T) -> VoxelVisibility
+    mask: fn(&T) -> VoxelVisibility
 ) where
     V: Voxel + From<&'a T>,
     S: Shape<3, Coord = u32>,
@@ -95,7 +95,7 @@ pub fn visible_block_faces_with_voxel_view<'a, T, V, S>(
         let p_index = voxels_shape.linearize(p_array);
         let p_voxel = V::from(unsafe { voxels.get_unchecked(p_index as usize) });
         
-        if visibility(&voxels.get(p_index as usize).unwrap()) == VoxelVisibility::Empty {
+        if mask(&voxels.get(p_index as usize).unwrap()) == VoxelVisibility::Empty {
             continue;
         }
 
@@ -132,7 +132,7 @@ mod tests {
     use crate::RIGHT_HANDED_Y_UP_CONFIG;
     use ndshape::{ConstShape, ConstShape3u32};
 
-    fn visibility(voxel: &BoolVoxel) -> VoxelVisibility {
+    fn mask(voxel: &BoolVoxel) -> VoxelVisibility {
         voxel.get_visibility()
     }
 
@@ -148,7 +148,7 @@ mod tests {
             [34, 33, 33],
             &RIGHT_HANDED_Y_UP_CONFIG.faces,
             &mut buffer,
-            visibility
+            mask
         );
     }
 
@@ -164,7 +164,7 @@ mod tests {
             [33; 3],
             &RIGHT_HANDED_Y_UP_CONFIG.faces,
             &mut buffer,
-            visibility
+            mask
         );
     }
 
