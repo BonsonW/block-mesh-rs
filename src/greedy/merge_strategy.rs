@@ -150,7 +150,6 @@ impl<T> VoxelMerger<T> {
                 break;
             }
 
-            last_face_opaque = voxel.get_face_visibility(face_index) == VoxelVisibility::Opaque;
             if (quad_width > 0)
                 || !voxel.merge_value().eq(quad_merge_voxel_value)
                 || !neighbour
@@ -160,6 +159,7 @@ impl<T> VoxelMerger<T> {
                 // Voxel needs to be non-empty and match the quad merge value.
                 break;
             }
+            last_face_opaque = neighbour.get_face_visibility(face_index) == VoxelVisibility::Opaque;
 
             quad_width += 1;
             row_stride += delta_stride;
