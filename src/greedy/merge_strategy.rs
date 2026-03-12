@@ -144,7 +144,8 @@ impl<T> VoxelMerger<T> {
                 break;
             }
 
-            if (quad_width > 0 && (voxel.get_meshshape() != MeshShape::CUBE || neighbour.get_face_visibility(face_index) != VoxelVisibility::Opaque || voxel.get_meshshape() != neighbour.get_meshshape())) || !voxel.merge_value().eq(quad_merge_voxel_value)
+            if (quad_width > 0 && (voxel.get_meshshape() != MeshShape::CUBE || neighbour.get_face_visibility(face_index) != voxel.get_face_visibility(face_index) || voxel.get_meshshape() != neighbour.get_meshshape()))
+                || !voxel.merge_value().eq(quad_merge_voxel_value)
                 || !neighbour
                     .merge_value_facing_neighbour()
                     .eq(quad_merge_voxel_value_facing_neighbour)
