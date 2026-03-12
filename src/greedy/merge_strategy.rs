@@ -134,12 +134,12 @@ impl<T> VoxelMerger<T> {
             let voxel = voxels.get_unchecked(row_stride as usize);
             let neighbour =
                 voxels.get_unchecked(row_stride.wrapping_add(visibility_offset) as usize);
-                
+
             if !face_needs_mesh(voxel, row_stride, visibility_offset, voxels, visited, mask) {
                 break;
             }
 
-            if voxel.get_meshshape() != MeshShape::CUBE || !voxel.merge_value().eq(quad_merge_voxel_value)
+            if (quad_width > 0 && voxel.get_meshshape() != MeshShape::CUBE) || !voxel.merge_value().eq(quad_merge_voxel_value)
                 || !neighbour
                     .merge_value_facing_neighbour()
                     .eq(quad_merge_voxel_value_facing_neighbour)
