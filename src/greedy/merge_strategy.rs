@@ -1,5 +1,5 @@
 use crate::greedy::face_needs_mesh;
-use crate::{MeshShape, Voxel};
+use crate::{MeshShape, Voxel, VoxelVisibility};
 
 use super::MergeVoxel;
 
@@ -144,7 +144,7 @@ impl<T> VoxelMerger<T> {
                 break;
             }
 
-            if neighbour.get_meshshape() != MeshShape::CUBE || (quad_width > 0 && (voxel.get_meshshape() != MeshShape::CUBE)) || !voxel.merge_value().eq(quad_merge_voxel_value)
+            if (quad_width > 0 && (voxel.get_meshshape() != MeshShape::CUBE || neighbour.get_face_visibility(face_index) != VoxelVisibility::Opaque)) || !voxel.merge_value().eq(quad_merge_voxel_value)
                 || !neighbour
                     .merge_value_facing_neighbour()
                     .eq(quad_merge_voxel_value_facing_neighbour)
