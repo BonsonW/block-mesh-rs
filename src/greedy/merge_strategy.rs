@@ -94,7 +94,7 @@ where
         row_start_stride += face_strides.v_stride;
         let mut quad_height = 1;
 
-        if !last_opaque { return (quad_width, quad_height) }
+        // if !last_opaque { return (quad_width, quad_height) }
         while quad_height < max_height {
             let (row_width, last_opaque) = Self::get_row_width(
                 voxels,
