@@ -96,7 +96,7 @@ where
 
         if !last_opaque { return (quad_width, quad_height) }
         while quad_height < max_height {
-            let (row_width, _) = Self::get_row_width(
+            let (row_width, last_opaque) = Self::get_row_width(
                 voxels,
                 visited,
                 &quad_value,
@@ -108,7 +108,7 @@ where
                 mask,
                 face_index
             );
-            if row_width < quad_width {
+            if row_width < quad_width || !last_opaque {
                 break;
             }
             quad_height += 1;
