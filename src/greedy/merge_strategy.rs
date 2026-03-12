@@ -95,7 +95,11 @@ where
         let mut quad_height = 1;
 
         if !last_opaque { return (quad_width, quad_height) }
+        let voxel = voxels.get_unchecked(row_start_stride as usize);
+        if voxel.get_meshshape() != MeshShape::CUBE { return (quad_width, quad_height) }
+        
         while quad_height < max_height {
+
             let (row_width, last_opaque) = Self::get_row_width(
                 voxels,
                 visited,
