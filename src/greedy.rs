@@ -260,7 +260,7 @@ where
     // TODO: If the face lies between two transparent voxels, we choose not to mesh it. We might need to extend the IsOpaque
     // trait with different levels of transparency to support this.
     let neighbor_face = opp_face(face_index);
-    (visibility == VoxelVisibility::Forced) || match neighbor_voxel.get_face_visibility(neighbor_face) {
+    (visibility == VoxelVisibility::Forced) || match neighbor_voxel.get_visibility() {
         VoxelVisibility::Empty => true,
         VoxelVisibility::Translucent => visibility == VoxelVisibility::Opaque || visibility == VoxelVisibility::HideIfOppOpaque,
         VoxelVisibility::Opaque => false,
