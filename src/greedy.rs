@@ -2,6 +2,7 @@ mod merge_strategy;
 
 pub use merge_strategy::*;
 
+use crate::opp_face;
 use crate::{bounds::assert_in_bounds, OrientedBlockFace, QuadBuffer, UnorientedQuad, Voxel, VoxelVisibility};
 
 use ilattice::glam::UVec3;
@@ -111,8 +112,8 @@ pub fn greedy_quads_with_merge_strategy<T, S, Merger>(
     let interior =
         Extent::from_min_and_shape(interior.minimum.as_uvec3(), interior.shape.as_uvec3());
 
-    for (group, face) in groups.iter_mut().zip(faces.iter()) {
-        greedy_quads_for_face::<_, _, Merger>(voxels, voxels_shape, interior, face, visited, group, mask);
+    for (group, (face_index, face)) in groups.iter_mut().zip(faces.iter().enumerate()) {
+        greedy_quads_for_face::<_, _, Merger>(voxels, voxels_shape, interior, face, visited, group, mask, face_index);
     }
 }
 
@@ -124,6 +125,7 @@ fn greedy_quads_for_face<T, S, Merger>(
     visited: &mut [bool],
     quads: &mut Vec<UnorientedQuad>,
     mask: fn(&T) -> bool,
+    face_index: usize,
 ) where
     T: Voxel,
     S: Shape<3, Coord = u32>,
@@ -185,7 +187,8 @@ fn greedy_quads_for_face<T, S, Merger>(
                     face_strides.visibility_offset,
                     voxels,
                     visited,
-                    mask
+                    mask,
+                    face_index
                 )
             } {
                 continue;
@@ -204,7 +207,8 @@ fn greedy_quads_for_face<T, S, Merger>(
                     &face_strides,
                     voxels,
                     visited,
-                    mask
+                    mask,
+                    face_index
                 )
             };
             debug_assert!(quad_width >= 1);
@@ -240,6 +244,7 @@ pub(crate) unsafe fn face_needs_mesh<T>(
     voxels: &[T],
     visited: &[bool],
     mask: fn(&T) -> bool,
+    face_index: usize
 ) -> bool
 where
     T: Voxel,
@@ -249,12 +254,13 @@ where
         return false;
     }
 
-    let adjacent_voxel =
+    let neighbor_voxel =
         voxels.get_unchecked(voxel_stride.wrapping_add(visibility_offset) as usize);
 
     // TODO: If the face lies between two transparent voxels, we choose not to mesh it. We might need to extend the IsOpaque
     // trait with different levels of transparency to support this.
-    (visibility == VoxelVisibility::Forced) || match adjacent_voxel.get_visibility() {
+    let neighbor_face = opp_face(face_index);
+    (visibility == VoxelVisibility::Forced) || match neighbor_voxel.get_face_visibility(neighbor_face) {
         VoxelVisibility::Empty => true,
         VoxelVisibility::Translucent => visibility == VoxelVisibility::Opaque || visibility == VoxelVisibility::HideIfOppOpaque,
         VoxelVisibility::Opaque => false,

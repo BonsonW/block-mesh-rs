@@ -50,7 +50,7 @@ pub fn visible_block_faces<T, S>(
 //     FACE_LOOKUP[face_stride]
 // }
 
-fn opp_face(face: usize) -> usize {
+pub fn opp_face(face: usize) -> usize {
     match face {
         0 => 3,
         1 => 4,
