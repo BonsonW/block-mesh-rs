@@ -65,6 +65,7 @@ pub fn greedy_quads<T, S>(
     max: [u32; 3],
     faces: &[OrientedBlockFace; 6],
     output: &mut GreedyQuadsBuffer,
+    mask: fn(&T) -> bool,
 ) where
     T: MergeVoxel,
     S: Shape<3, Coord = u32>,
@@ -76,6 +77,7 @@ pub fn greedy_quads<T, S>(
         max,
         faces,
         output,
+        mask
     )
 }
 
@@ -87,6 +89,7 @@ pub fn greedy_quads_with_merge_strategy<T, S, Merger>(
     max: [u32; 3],
     faces: &[OrientedBlockFace; 6],
     output: &mut GreedyQuadsBuffer,
+    mask: fn(&T) -> bool,
 ) where
     T: Voxel,
     S: Shape<3, Coord = u32>,
@@ -109,7 +112,7 @@ pub fn greedy_quads_with_merge_strategy<T, S, Merger>(
         Extent::from_min_and_shape(interior.minimum.as_uvec3(), interior.shape.as_uvec3());
 
     for (group, face) in groups.iter_mut().zip(faces.iter()) {
-        greedy_quads_for_face::<_, _, Merger>(voxels, voxels_shape, interior, face, visited, group);
+        greedy_quads_for_face::<_, _, Merger>(voxels, voxels_shape, interior, face, visited, group, mask);
     }
 }
 
@@ -120,6 +123,7 @@ fn greedy_quads_for_face<T, S, Merger>(
     face: &OrientedBlockFace,
     visited: &mut [bool],
     quads: &mut Vec<UnorientedQuad>,
+    mask: fn(&T) -> bool,
 ) where
     T: Voxel,
     S: Shape<3, Coord = u32>,
@@ -173,6 +177,7 @@ fn greedy_quads_for_face<T, S, Merger>(
             let quad_min_array = quad_min.to_array();
             let quad_min_index = voxels_shape.linearize(quad_min_array);
             let quad_min_voxel = unsafe { voxels.get_unchecked(quad_min_index as usize) };
+
             if unsafe {
                 !face_needs_mesh(
                     quad_min_voxel,
@@ -180,6 +185,7 @@ fn greedy_quads_for_face<T, S, Merger>(
                     face_strides.visibility_offset,
                     voxels,
                     visited,
+                    mask
                 )
             } {
                 continue;
@@ -198,6 +204,7 @@ fn greedy_quads_for_face<T, S, Merger>(
                     &face_strides,
                     voxels,
                     visited,
+                    mask
                 )
             };
             debug_assert!(quad_width >= 1);
@@ -232,12 +239,13 @@ pub(crate) unsafe fn face_needs_mesh<T>(
     visibility_offset: u32,
     voxels: &[T],
     visited: &[bool],
+    mask: fn(&T) -> bool,
 ) -> bool
 where
     T: Voxel,
 {
     let visibility = voxel.get_visibility();
-    if visibility == VoxelVisibility::Empty || visited[voxel_stride as usize] {
+    if visibility == VoxelVisibility::Empty || visited[voxel_stride as usize] || !mask(voxel) {
         return false;
     }
 
@@ -258,8 +266,12 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::RIGHT_HANDED_Y_UP_CONFIG;
+    use crate::{MeshShape, RIGHT_HANDED_Y_UP_CONFIG};
     use ndshape::{ConstShape, ConstShape3u32};
+
+    fn mask(voxel: &BoolVoxel) -> bool {
+        voxel.get_visibility() != VoxelVisibility::Empty
+    }
 
     #[test]
     #[should_panic]
@@ -273,6 +285,7 @@ mod tests {
             [34, 33, 33],
             &RIGHT_HANDED_Y_UP_CONFIG.faces,
             &mut buffer,
+            mask
         );
     }
 
@@ -288,6 +301,7 @@ mod tests {
             [33; 3],
             &RIGHT_HANDED_Y_UP_CONFIG.faces,
             &mut buffer,
+            mask
         );
     }
 
@@ -300,6 +314,14 @@ mod tests {
     const EMPTY: BoolVoxel = BoolVoxel(false);
 
     impl Voxel for BoolVoxel {
+        fn get_meshshape(&self) -> MeshShape {
+            if *self == EMPTY {
+                MeshShape::EMPTY
+            } else {
+                MeshShape::CUBE
+            }
+        }
+
         fn get_visibility(&self) -> VoxelVisibility {
             if *self == EMPTY {
                 VoxelVisibility::Empty

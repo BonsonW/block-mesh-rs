@@ -107,10 +107,22 @@ pub enum VoxelVisibility {
     HideIfOppOpaque
 }
 
+/// Describes how this voxel influences mesh generation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MeshShape {
+    CUBE,
+    CUBENOMERGE,
+    RAMP,
+    FlatPZ,
+    SLAB,
+    EMPTY,
+}
+
 /// Implement on your voxel types to inform the library
 /// how to generate geometry for this voxel.
 pub trait Voxel {
     fn get_visibility(&self) -> VoxelVisibility;
+    fn get_meshshape(&self) -> MeshShape;
     fn get_face_visibility(&self, face: usize) -> VoxelVisibility;
 }
 
@@ -122,6 +134,11 @@ impl<'a, T: Voxel> Voxel for IdentityVoxel<'a, T> {
     #[inline]
     fn get_visibility(&self) -> VoxelVisibility {
         self.0.get_visibility()
+    }
+
+    #[inline]
+    fn get_meshshape(&self) -> MeshShape {
+        self.0.get_meshshape()
     }
     
     #[inline]

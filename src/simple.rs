@@ -129,7 +129,7 @@ pub fn visible_block_faces_with_voxel_view<'a, T, V, S>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::RIGHT_HANDED_Y_UP_CONFIG;
+    use crate::{MeshShape, RIGHT_HANDED_Y_UP_CONFIG};
     use ndshape::{ConstShape, ConstShape3u32};
 
     fn mask(voxel: &BoolVoxel) -> bool {
@@ -182,6 +182,14 @@ mod tests {
                 VoxelVisibility::Empty
             } else {
                 VoxelVisibility::Opaque
+            }
+        }
+        
+        fn get_meshshape(&self) -> MeshShape {
+            if *self == EMPTY {
+                MeshShape::EMPTY
+            } else {
+                MeshShape::CUBE
             }
         }
         

@@ -1,5 +1,5 @@
 use crate::greedy::face_needs_mesh;
-use crate::Voxel;
+use crate::{MeshShape, Voxel};
 
 use super::MergeVoxel;
 
@@ -35,6 +35,7 @@ pub trait MergeStrategy {
         face_strides: &FaceStrides,
         voxels: &[Self::Voxel],
         visited: &[bool],
+        mask: fn(&Self::Voxel) -> bool,
     ) -> (u32, u32)
     where
         Self::Voxel: Voxel;
@@ -64,6 +65,7 @@ where
         face_strides: &FaceStrides,
         voxels: &[T],
         visited: &[bool],
+        mask: fn(&T) -> bool,
     ) -> (u32, u32) {
         // Greedily search for the biggest visible quad where all merge values are the same.
         let quad_value = voxels.get_unchecked(min_index as usize).merge_value();
@@ -82,6 +84,7 @@ where
             row_start_stride,
             face_strides.u_stride,
             max_width,
+            mask
         );
 
         // Now see how tall we can make the quad in the V direction without changing the width.
@@ -97,6 +100,7 @@ where
                 row_start_stride,
                 face_strides.u_stride,
                 quad_width,
+                mask
             );
             if row_width < quad_width {
                 break;
@@ -119,6 +123,7 @@ impl<T> VoxelMerger<T> {
         start_stride: u32,
         delta_stride: u32,
         max_width: u32,
+        mask: fn(&T) -> bool,
     ) -> u32
     where
         T: MergeVoxel,
@@ -130,7 +135,10 @@ impl<T> VoxelMerger<T> {
             let neighbour =
                 voxels.get_unchecked(row_stride.wrapping_add(visibility_offset) as usize);
 
-            if !face_needs_mesh(voxel, row_stride, visibility_offset, voxels, visited) {
+            if voxel.get_meshshape() != MeshShape::CUBE {
+                break;
+            }
+            if !face_needs_mesh(voxel, row_stride, visibility_offset, voxels, visited, mask) {
                 break;
             }
 
