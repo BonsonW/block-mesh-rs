@@ -144,6 +144,9 @@ impl<T> VoxelMerger<T> {
 
         let voxel = voxels.get_unchecked(row_stride as usize);
         let mut last_face_opaque = voxel.get_meshshape() == MeshShape::CUBE;
+        if last_face_opaque {
+            return (1, last_face_opaque);
+        }
 
         while quad_width < max_width {
             let voxel = voxels.get_unchecked(row_stride as usize);
@@ -155,7 +158,7 @@ impl<T> VoxelMerger<T> {
                 break;
             }
 
-            if (quad_width > 0 && (voxel.get_meshshape() != MeshShape::CUBE || neighbour.get_meshshape() != MeshShape::CUBE || neighbour.get_meshshape() != voxel.get_meshshape()))
+            if (quad_width > 0 && (voxel.get_meshshape() != MeshShape::CUBE || neighbour.get_meshshape() != MeshShape::CUBE))
                 || !voxel.merge_value().eq(quad_merge_voxel_value)
                 || !neighbour
                     .merge_value_facing_neighbour()
