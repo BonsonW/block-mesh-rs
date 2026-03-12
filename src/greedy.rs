@@ -250,7 +250,7 @@ pub(crate) unsafe fn face_needs_mesh<T>(
 where
     T: Voxel,
 {
-    let visibility = voxel.get_visibility();
+    let visibility = voxel.get_face_visibility(face_index);
     if visibility == VoxelVisibility::Empty || visited[voxel_stride as usize] || !mask(voxel) {
         return false;
     }
