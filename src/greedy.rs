@@ -199,18 +199,19 @@ fn greedy_quads_for_face<T, S, Merger>(
             let max_width = u_ub - quad_min_array[i_u];
             let max_height = v_ub - quad_min_array[i_v];
 
-            let (quad_width, quad_height) = unsafe {
-                Merger::find_quad(
-                    quad_min_index,
-                    max_width,
-                    max_height,
-                    &face_strides,
-                    voxels,
-                    visited,
-                    mask,
-                    face_index
-                )
-            };
+            // let (quad_width, quad_height) = unsafe {
+            //     Merger::find_quad(
+            //         quad_min_index,
+            //         max_width,
+            //         max_height,
+            //         &face_strides,
+            //         voxels,
+            //         visited,
+            //         mask,
+            //         face_index
+            //     )
+            // };
+            let (quad_width, quad_height) = (1, 1);
             debug_assert!(quad_width >= 1);
             debug_assert!(quad_width <= max_width);
             debug_assert!(quad_height >= 1);
@@ -260,7 +261,7 @@ where
     // TODO: If the face lies between two transparent voxels, we choose not to mesh it. We might need to extend the IsOpaque
     // trait with different levels of transparency to support this.
     let neighbor_face = opp_face(face_index);
-    (visibility == VoxelVisibility::Forced) || match neighbor_voxel.get_visibility() {
+    (visibility == VoxelVisibility::Forced) || match neighbor_voxel.get_face_visibility(neighbor_face) {
         VoxelVisibility::Empty => true,
         VoxelVisibility::Translucent => visibility == VoxelVisibility::Opaque || visibility == VoxelVisibility::HideIfOppOpaque,
         VoxelVisibility::Opaque => false,
