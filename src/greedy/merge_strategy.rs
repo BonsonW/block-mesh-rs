@@ -77,7 +77,7 @@ where
 
         // Start by finding the widest quad in the U direction.
         let mut row_start_stride = min_index;
-        let quad_width = Self::get_row_width(
+        let (quad_width, last_opaque) = Self::get_row_width(
             voxels,
             visited,
             &quad_value,
@@ -93,8 +93,10 @@ where
         // Now see how tall we can make the quad in the V direction without changing the width.
         row_start_stride += face_strides.v_stride;
         let mut quad_height = 1;
+
+        if !last_opaque { return (quad_width, quad_height) }
         while quad_height < max_height {
-            let row_width = Self::get_row_width(
+            let (row_width, _) = Self::get_row_width(
                 voxels,
                 visited,
                 &quad_value,
@@ -128,13 +130,15 @@ impl<T> VoxelMerger<T> {
         delta_stride: u32,
         max_width: u32,
         mask: fn(&T) -> bool,
-        face_index: usize
-    ) -> u32
+        face_index: usize,
+    ) -> (u32, bool)
     where
         T: MergeVoxel,
     {
         let mut quad_width = 0;
         let mut row_stride = start_stride;
+        let mut last_face_opaque = false;
+
         while quad_width < max_width {
             let voxel = voxels.get_unchecked(row_stride as usize);
             let neighbour =
@@ -143,6 +147,8 @@ impl<T> VoxelMerger<T> {
             if !face_needs_mesh(voxel, row_stride, visibility_offset, voxels, visited, mask, face_index) {
                 break;
             }
+
+            last_face_opaque = voxel.get_visibility() == VoxelVisibility::Opaque;
 
             if (quad_width > 0)
                 || !voxel.merge_value().eq(quad_merge_voxel_value)
@@ -158,6 +164,6 @@ impl<T> VoxelMerger<T> {
             row_stride += delta_stride;
         }
 
-        quad_width
+        (quad_width, last_face_opaque)
     }
 }
