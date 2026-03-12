@@ -108,7 +108,7 @@ where
                 mask,
                 face_index
             );
-            if row_width < quad_width || !last_opaque {
+            if row_width < quad_width {
                 break;
             }
             quad_height += 1;
