@@ -141,14 +141,14 @@ impl<T> VoxelMerger<T> {
 
         while quad_width < max_width {
             let voxel = voxels.get_unchecked(row_stride as usize);
+            last_face_opaque = voxel.get_visibility() == VoxelVisibility::Opaque;
+
             let neighbour =
                 voxels.get_unchecked(row_stride.wrapping_add(visibility_offset) as usize);
 
             if !face_needs_mesh(voxel, row_stride, visibility_offset, voxels, visited, mask, face_index) {
                 break;
             }
-
-            last_face_opaque = voxel.get_visibility() == VoxelVisibility::Opaque;
 
             if (quad_width > 0)
                 || !voxel.merge_value().eq(quad_merge_voxel_value)
