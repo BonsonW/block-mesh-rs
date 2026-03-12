@@ -144,7 +144,7 @@ impl<T> VoxelMerger<T> {
 
         let voxel = voxels.get_unchecked(row_stride as usize);
         let mut last_face_opaque = voxel.get_meshshape() == MeshShape::CUBE;
-        if last_face_opaque {
+        if !last_face_opaque {
             return (1, last_face_opaque);
         }
 
