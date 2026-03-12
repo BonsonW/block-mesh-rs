@@ -94,7 +94,7 @@ where
         row_start_stride += face_strides.v_stride;
         let mut quad_height = 1;
 
-        // if !last_opaque { return (quad_width, quad_height) }
+        if !last_opaque { return (quad_width, quad_height) }
         while quad_height < max_height {
             let (row_width, last_opaque) = Self::get_row_width(
                 voxels,
@@ -108,7 +108,7 @@ where
                 mask,
                 face_index
             );
-            if row_width < quad_width {
+            if row_width < quad_width || !last_opaque {
                 break;
             }
             quad_height += 1;
@@ -139,7 +139,7 @@ impl<T> VoxelMerger<T> {
         let mut row_stride = start_stride;
 
         let voxel = voxels.get_unchecked(row_stride as usize);
-        let mut last_face_opaque = voxel.get_face_visibility(face_index) == VoxelVisibility::Opaque;
+        let mut last_face_opaque = voxel.get_meshshape() == MeshShape::CUBE;
 
         while quad_width < max_width {
             let voxel = voxels.get_unchecked(row_stride as usize);
@@ -160,7 +160,7 @@ impl<T> VoxelMerger<T> {
                 // Voxel needs to be non-empty and match the quad merge value.
                 break;
             }
-            last_face_opaque = neighbour.get_face_visibility(face_index) == VoxelVisibility::Opaque;
+            last_face_opaque = neighbour.get_meshshape() == MeshShape::CUBE;
 
             quad_width += 1;
             row_stride += delta_stride;
