@@ -199,19 +199,18 @@ fn greedy_quads_for_face<T, S, Merger>(
             let max_width = u_ub - quad_min_array[i_u];
             let max_height = v_ub - quad_min_array[i_v];
 
-            // let (quad_width, quad_height) = unsafe {
-            //     Merger::find_quad(
-            //         quad_min_index,
-            //         max_width,
-            //         max_height,
-            //         &face_strides,
-            //         voxels,
-            //         visited,
-            //         mask,
-            //         face_index
-            //     )
-            // };
-            let (quad_width, quad_height) = (1, 1);
+            let (quad_width, quad_height) = unsafe {
+                Merger::find_quad(
+                    quad_min_index,
+                    max_width,
+                    max_height,
+                    &face_strides,
+                    voxels,
+                    visited,
+                    mask,
+                    face_index
+                )
+            };
             debug_assert!(quad_width >= 1);
             debug_assert!(quad_width <= max_width);
             debug_assert!(quad_height >= 1);

@@ -144,7 +144,7 @@ impl<T> VoxelMerger<T> {
                 break;
             }
 
-            if (quad_width > 0)
+            if (quad_width > 0 && (voxel.get_meshshape() != MeshShape::CUBE || voxel.get_meshshape() != neighbour.get_meshshape()))
                 || !voxel.merge_value().eq(quad_merge_voxel_value)
                 || !neighbour
                     .merge_value_facing_neighbour()
