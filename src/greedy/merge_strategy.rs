@@ -150,6 +150,7 @@ impl<T> VoxelMerger<T> {
                 break;
             }
 
+            last_face_opaque = voxel.get_face_visibility(face_index) == VoxelVisibility::Opaque;
             if (quad_width > 0)
                 || !voxel.merge_value().eq(quad_merge_voxel_value)
                 || !neighbour
