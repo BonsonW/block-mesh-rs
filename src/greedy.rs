@@ -67,6 +67,7 @@ pub fn greedy_quads<T, S>(
     faces: &[OrientedBlockFace; 6],
     output: &mut GreedyQuadsBuffer,
     mask: fn(&T) -> bool,
+    peak: Option<&PeakInfo>,
 ) where
     T: MergeVoxel,
     S: Shape<3, Coord = u32>,
@@ -78,7 +79,8 @@ pub fn greedy_quads<T, S>(
         max,
         faces,
         output,
-        mask
+        mask,
+        peak
     )
 }
 
@@ -91,6 +93,7 @@ pub fn greedy_quads_with_merge_strategy<T, S, Merger>(
     faces: &[OrientedBlockFace; 6],
     output: &mut GreedyQuadsBuffer,
     mask: fn(&T) -> bool,
+    peak: Option<&PeakInfo>,
 ) where
     T: Voxel,
     S: Shape<3, Coord = u32>,
@@ -113,7 +116,7 @@ pub fn greedy_quads_with_merge_strategy<T, S, Merger>(
         Extent::from_min_and_shape(interior.minimum.as_uvec3(), interior.shape.as_uvec3());
 
     for (group, (face_index, face)) in groups.iter_mut().zip(faces.iter().enumerate()) {
-        greedy_quads_for_face::<_, _, Merger>(voxels, voxels_shape, interior, face, visited, group, mask, face_index);
+        greedy_quads_for_face::<_, _, Merger>(voxels, voxels_shape, interior, face, visited, group, mask, face_index, peak);
     }
 }
 
@@ -126,6 +129,7 @@ fn greedy_quads_for_face<T, S, Merger>(
     quads: &mut Vec<UnorientedQuad>,
     mask: fn(&T) -> bool,
     face_index: usize,
+    peak: Option<&PeakInfo>,
 ) where
     T: Voxel,
     S: Shape<3, Coord = u32>,
@@ -208,7 +212,8 @@ fn greedy_quads_for_face<T, S, Merger>(
                     voxels,
                     visited,
                     mask,
-                    face_index
+                    face_index,
+                    peak
                 )
             };
             // let (quad_width, quad_height) = (1, 1);
@@ -292,7 +297,8 @@ mod tests {
             [34, 33, 33],
             &RIGHT_HANDED_Y_UP_CONFIG.faces,
             &mut buffer,
-            mask
+            mask,
+            None
         );
     }
 
@@ -308,7 +314,8 @@ mod tests {
             [33; 3],
             &RIGHT_HANDED_Y_UP_CONFIG.faces,
             &mut buffer,
-            mask
+            mask,
+            None
         );
     }
 

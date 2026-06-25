@@ -70,7 +70,8 @@
 //!     [0; 3],
 //!     [17; 3],
 //!     &RIGHT_HANDED_Y_UP_CONFIG.faces,
-//!     &mut buffer
+//!     &mut buffer,
+//!     None
 //! );
 //!
 //! // Some quads were generated.

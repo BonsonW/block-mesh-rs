@@ -1,9 +1,18 @@
 use crate::greedy::face_needs_mesh;
-use crate::{MeshShape, Voxel, VoxelVisibility};
+use crate::{MeshShape, Voxel};
 
 use super::MergeVoxel;
 
 // TODO: implement a MergeStrategy for voxels with an ambient occlusion value at each vertex
+
+/// Optional per-voxel "peak" information used to prevent merging quads across a
+/// peak/non-peak boundary on a single face (e.g. the +Y face, so winter snow can
+/// be rendered consistently per voxel). `is_peak` is indexed by the SAME linear
+/// stride as the `voxels` slice; `face_index` selects the face this applies to.
+pub struct PeakInfo<'a> {
+    pub is_peak: &'a [bool],
+    pub face_index: usize,
+}
 
 /// A strategy for merging cube faces into quads.
 pub trait MergeStrategy {
@@ -36,7 +45,8 @@ pub trait MergeStrategy {
         voxels: &[Self::Voxel],
         visited: &[bool],
         mask: fn(&Self::Voxel) -> bool,
-        face_index: usize
+        face_index: usize,
+        peak: Option<&PeakInfo>
     ) -> (u32, u32)
     where
         Self::Voxel: Voxel;
@@ -67,13 +77,18 @@ where
         voxels: &[T],
         visited: &[bool],
         mask: fn(&T) -> bool,
-        face_index: usize
+        face_index: usize,
+        peak: Option<&PeakInfo>
     ) -> (u32, u32) {
         // Greedily search for the biggest visible quad where all merge values are the same.
         let quad_value = voxels.get_unchecked(min_index as usize).merge_value();
         let quad_neighbour_value = voxels
             .get_unchecked(min_index.wrapping_add(face_strides.visibility_offset) as usize)
             .merge_value_facing_neighbour();
+
+        // Peak-ness of the quad's origin voxel; used to refuse merging across a
+        // peak/non-peak boundary on `peak.face_index` only.
+        let quad_is_peak = peak.map_or(false, |p| *p.is_peak.get_unchecked(min_index as usize));
 
         // Start by finding the widest quad in the U direction.
         let mut row_start_stride = min_index;
@@ -87,7 +102,9 @@ where
             face_strides.u_stride,
             max_width,
             mask,
-            face_index
+            face_index,
+            peak,
+            quad_is_peak
         );
 
         // Now see how tall we can make the quad in the V direction without changing the width.
@@ -110,7 +127,9 @@ where
                 face_strides.u_stride,
                 quad_width,
                 mask,
-                face_index
+                face_index,
+                peak,
+                quad_is_peak
             );
             if row_width < quad_width || !last_opaque {
                 break;
@@ -135,6 +154,8 @@ impl<T> VoxelMerger<T> {
         max_width: u32,
         mask: fn(&T) -> bool,
         face_index: usize,
+        peak: Option<&PeakInfo>,
+        quad_is_peak: bool,
     ) -> (u32, bool)
     where
         T: MergeVoxel,
@@ -156,6 +177,15 @@ impl<T> VoxelMerger<T> {
 
             if !face_needs_mesh(voxel, row_stride, visibility_offset, voxels, visited, mask, face_index) {
                 break;
+            }
+
+            // Refuse to merge across a peak/non-peak boundary on the selected face
+            // (e.g. +Y), so the per-quad peak flag is consistent for the whole quad.
+            if let Some(p) = peak {
+                if face_index == p.face_index
+                    && *p.is_peak.get_unchecked(row_stride as usize) != quad_is_peak {
+                    break;
+                }
             }
 
             if (quad_width > 0 && (voxel.get_meshshape() != MeshShape::CUBE || neighbour.get_meshshape() != MeshShape::CUBE))
